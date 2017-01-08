@@ -1,0 +1,6 @@
+[package]
+name = "sksh"
+version = "0.1.0"
+authors = ["Michael Matuzak <mmatuzak@gmail.com>"]
+
+[dependencies]

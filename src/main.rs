@@ -4,8 +4,8 @@ use std::process::Command;
 
 fn main() {
     println!("Welcome to sksh");
-    print!("$ ");
     loop {
+        print!("$ ");
         let line: String = read_line();
         let parsed: Vec<&str> = split_line(&line);
         let (command, args) = match parsed.split_first() {
@@ -28,10 +28,14 @@ fn execute(c: &str, args: &[&str]) {
 
     let s = &trimmed_args[..];
 
-    Command::new(c)
+    let output = Command::new(c)
         .args(s)
-        .spawn()
+        .output()
         .expect("failed to execute process.");
+
+    if output.status.success() {
+        println!("{}", String::from_utf8_lossy(&output.stdout));
+    }
 }
 
 fn split_line(line: &str) -> Vec<&str> {

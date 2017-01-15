@@ -20,6 +20,11 @@ fn main() {
 }
 
 fn execute(c: &str, args: &[&str]) {
+    if c.len() == 0 {
+        println!("");
+        return;
+    }
+
     let mut trimmed_args = Vec::new();
 
     for i in args {
@@ -27,6 +32,7 @@ fn execute(c: &str, args: &[&str]) {
     }
 
     let s = &trimmed_args[..];
+
 
     let output = Command::new(c)
         .args(s)

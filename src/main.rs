@@ -4,19 +4,7 @@ use std::process::Command;
 
 fn main() {
     println!("Welcome to sksh");
-    loop {
-        print!("$ ");
-        let line: String = read_line();
-        let parsed: Vec<&str> = split_line(&line);
-        let (command, args) = match parsed.split_first() {
-            Some((first, elements)) => (first.trim(), elements),
-            None => {
-                return ();
-            }
-        };
-
-        execute(command, args);
-    }
+    looper();
 }
 
 fn execute(c: &str, args: &[&str]) {
@@ -55,4 +43,20 @@ fn read_line() -> String {
     io::stdin().read_line(&mut line)
         .expect("Failed to read line");
     return line;
+}
+
+fn looper() {
+    loop {
+        print!("$ ");
+        let line: String = read_line();
+        let parsed: Vec<&str> = split_line(&line);
+        let (command, args) = match parsed.split_first() {
+            Some((first, elements)) => (first.trim(), elements),
+            None => {
+                return ();
+            }
+        };
+
+        execute(command, args);
+    }
 }

@@ -1,10 +1,27 @@
 use std::io;
+use std::env;
 use std::io::Write;
+use std::path::Path;
 use std::process::Command;
 
 fn main() {
     println!("Welcome to sksh");
     looper();
+}
+
+fn cd(args: &[&str]) {
+    let path = match args.len() {
+        0 => env::home_dir(),
+        _ => Some(Path::new(args[0]).to_path_buf()),
+    };
+
+    let dir = path.unwrap();
+    match env::set_current_dir(&dir) {
+        Err(err) => {
+            println!("cd: {}", err);
+        },
+        _ => {}
+    }
 }
 
 fn execute(c: &str, args: &[&str]) {
@@ -19,11 +36,14 @@ fn execute(c: &str, args: &[&str]) {
         trimmed_args.push(i.trim());
     }
 
-    let s = &trimmed_args[..];
+    let clean_args = &trimmed_args[..];
 
+    if c == "cd" {
+        return cd(clean_args);
+    }
 
     let output = Command::new(c)
-        .args(s)
+        .args(clean_args)
         .output()
         .expect("failed to execute process.");
 

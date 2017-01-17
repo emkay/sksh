@@ -1,41 +1,12 @@
 use std::io;
-use std::io::Error;
 use std::io::Write;
-use std::fs::ReadDir;
 use std::path::Path;
 use std::process::Command;
 use std::process::exit;
 
-extern crate suffix;
-
-use suffix::SuffixTable;
-
 fn main() {
     println!("Welcome to sksh");
-    let path_str = std::env::var("PATH").unwrap();
-    let paths: Vec<&str> = path_str.split(":").collect();
-
-    let completions: Vec<Result<ReadDir, Error>> = paths
-        .into_iter()
-        .map(collect_completions)
-        .collect();
-
-    let mut bins = Vec::new();
-
-    for c in completions {
-        let iter = c.unwrap();
-        for entry in iter {
-            bins.push(entry.unwrap().file_name().into_string().unwrap());
-        }
-    }
-
-    let words = bins.join(" ");
-
-    looper(&words);
-}
-
-fn collect_completions(path: &str) -> Result<ReadDir, Error> {
-    return std::fs::read_dir(path);
+    looper();
 }
 
 fn cd(args: &[&str]) {
@@ -100,9 +71,7 @@ fn read_line() -> String {
     return line;
 }
 
-fn looper(words: &str) {
-    let st = SuffixTable::new(words);
-
+fn looper() {
     loop {
         print!("$ ");
         let line: String = read_line();

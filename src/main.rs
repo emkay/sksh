@@ -1,7 +1,8 @@
 use std::io;
-use std::io::Write;
 use std::path::Path;
-use std::process::Command;
+use std::error::Error;
+use std::io::prelude::*;
+use std::process::{Command, Stdio};
 use std::process::exit;
 
 fn main() {
@@ -9,7 +10,7 @@ fn main() {
     looper();
 }
 
-fn cd(args: &[&str]) {
+fn cd(args: &[&str]) -> Option<i32> {
     let path = match args.len() {
         0 => std::env::home_dir(),
         _ => Some(Path::new(args[0]).to_path_buf()),
@@ -19,19 +20,16 @@ fn cd(args: &[&str]) {
     match std::env::set_current_dir(&dir) {
         Err(err) => {
             println!("cd: {}", err);
+            return Some(1);
         },
-        _ => {}
+        _ => return Some(0)
     }
 }
 
-fn terminate(code: i32) {
-    return exit(code);
-}
-
-fn execute(c: &str, args: &[&str]) {
+fn execute(c: &str, args: &[&str]) -> Option<i32> {
     if c.len() == 0 {
         println!("");
-        return;
+        return Some(0);
     }
 
     let trimmed_args: Vec<&str> = args.into_iter().map(|arg| arg.trim()).collect();
@@ -40,22 +38,28 @@ fn execute(c: &str, args: &[&str]) {
 
     match c {
         "cd" => return cd(clean_args),
-        "exit" => return terminate(0),
+        "exit" => {
+            let code = match clean_args.len() {
+                0 => 0,
+                1 => clean_args[0].parse::<i32>().unwrap(),
+                _ => 1
+            };
+
+            return exit(code);
+        },
         _ => {}
     }
 
-    let run_command = Command::new(c)
+    let mut process = Command::new(c)
         .args(clean_args)
-        .output();
+        .stderr(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .spawn()
+        .unwrap();
 
-    if let Ok(output) = run_command {
-        match output.status.success() {
-            true => { println!("{}", String::from_utf8_lossy(&output.stdout)) },
-            false => { println!("{}", String::from_utf8_lossy(&output.stderr)) }
-        }
-    } else {
-        println!("sksh: {} command not found.", c);
-    }
+    let status = process.wait().expect("failed to wait.");
+
+    return status.code();
 }
 
 fn split_line(line: &str) -> Vec<&str> {
